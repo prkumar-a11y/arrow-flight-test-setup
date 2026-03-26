@@ -1,0 +1,6 @@
+# Requirements for Arrow Flight Setup
+
+# List your dependencies below
+arrow-flight
+pyarrow
+pandas
