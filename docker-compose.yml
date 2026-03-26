@@ -1,0 +1,41 @@
+version: '3.8'
+services:
+  flight-server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: arrow-flight-server
+    ports:
+      - "50051:50051"
+    environment:
+      - PYTHONUNBUFFERED=1
+      - FLIGHT_HOST=0.0.0.0
+      - FLIGHT_PORT=50051
+    volumes:
+      - ./server:/app/server
+      - ./client:/app/client
+    healthcheck:
+      test: ["CMD", "python", "-c", "import pyarrow.flight; print('healthy')"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    networks:
+      - flight-network
+  flight-client:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: arrow-flight-client
+    depends_on:
+      flight-server:
+        condition: service_healthy
+    environment:
+      - PYTHONUNBUFFERED=1
+    command: python client/flight_client.py
+    volumes:
+      - ./client:/app/client
+    networks:
+      - flight-network
+networks:
+  flight-network:
+    driver: bridge
